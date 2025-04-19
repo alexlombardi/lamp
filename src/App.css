@@ -1,0 +1,137 @@
+@font-face {
+    font-family: 'National Park';
+    src: url('./NationalPark-VariableFont_wght.ttf') format('ttf');
+}
+
+#root {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    font-family: 'National Park', sans-serif;
+}
+
+.App {
+    width: 100%;
+    height: 100%;
+}
+
+.mainCanvas {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.objectCanvas {
+    width: 180px;
+    height: 180px;
+    box-sizing: border-box;
+}
+
+.video {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.overlay {
+    font-weight: bold;
+    position: fixed;
+    top: 50px;
+    left: 50px;
+    z-index: 10;
+    color: white;
+    display: flex;
+}
+
+.mainTitle {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 50px;
+    text-align: center;
+    color: white;
+    user-select: none;
+}
+
+.fullWidthCenteredRow {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.wideCanvasContainer {
+    width: 90vw;
+    height: calc(100vh / 3);
+    border-radius: 30px;
+    overflow: hidden;
+}
+
+.wideCanvas {
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.button {
+    position: relative;
+    font-weight: bold;
+    color: white;
+    box-sizing: border-box;
+    border: 1px solid transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px;
+    border-radius: 30px;
+    padding: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+    text-align: center;
+    cursor: pointer;
+    user-select: none;
+    overflow: hidden;
+    animation: fall 0.5s forwards;
+    width: 60px;
+    height: 60px;
+}
+
+.button:hover {
+    animation: rise 0.5s forwards;
+    color: 'black';
+    border: 1px solid white;
+}
+
+.button:not(:hover) > .buttonHoverCircle {
+    display: none;
+}
+
+.buttonHoverCircle {
+    display: none;
+    position: absolute;
+    background-color: white;
+    border-radius: 100%;
+    width: 220%;
+    transition: all 0.5s;
+    animation: buttonHoverCircle 0.4s forwards;
+    z-index: -1;
+    aspect-ratio: 1 / 1;
+}
+
+.buttonText {
+    mix-blend-mode: difference;
+}
+
+@keyframes buttonHoverCircle {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
