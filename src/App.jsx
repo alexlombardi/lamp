@@ -118,14 +118,14 @@ function MainHtml() {
     var titleTop = scrollPosition > titlePoint ? 100 - (viewportHeight / 2) + (scrollPosition * viewportHeight) * 0.9 + 'px' : ''; //there must be a reason 0.9 works, but I have no idea what it is
 
     const horizontalMotionDivs = [
-        { title: 'Smart', text: 'Brightens as you get closer to it, dims as you walk away' },
-        { title: 'Simple', text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations' },
-        { title: 'Flexible', text: 'Detach the cable to switch to battery mode, or mount the lamp in a variety of ways with included hardware' },
-        { title: 'Beautiful', text: 'A modern, minimal design that fits in any space' }
+        { title: 'Smart', text: 'Brightens as you get closer to it, dims as you walk away', image: '/example-1.jpg' },
+        { title: 'Simple', text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations', image: '/example-2.jpg' },
+        { title: 'Flexible', text: 'Detach the cable to switch to battery mode, or mount the lamp in a variety of ways with included hardware', image: '/example-3.jpg' },
+        { title: 'Beautiful', text: 'A modern, minimal design that fits in any space', image: '/example-4.jpg' },
     ];
 
     return <>
-        <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2 }}>
+        <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }}>
             <source src="./vid.m4v" type="video/mp4" />
         </video>
         <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop }}>
@@ -168,10 +168,15 @@ function MainHtml() {
                             <h1>{div.title}</h1>
                             <p>{div.text}</p>
                         </div>
-                        <div className='horizontalMotionDivImage' style={{backgroundImage: `url('/example-1.png')`}}></div>
+                        <div className='horizontalMotionDivImage' style={{backgroundImage: `url(${div.image})`}}></div>
                     </div>
                 </div>
             })}
+        </div>
+        <div className='moveDownTextContainer'>
+            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px'}}>
+                <h1>The promise of the smart home, fulfilled</h1>
+            </div>
         </div>
 
         {/*debug*/}
@@ -201,7 +206,7 @@ function Home() {
         <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
             <SoftShadows size={33} samples={100} />
             <FloatingLight />
-            <Environment files='/preller_drive_4k.exr' background={true} backgroundBlurriness={0.146} />
+            <Environment files='/autumn_field_puresky_4k.exr' background={true} />
             <ScrollControls pages={maxScrollPages} damping={0.2}>
                 <Scroll html style={{ width: '100%', height: '100%' }}>
                     <MainHtml />
