@@ -104,6 +104,20 @@ function PlaceholderScene(name) {
     return <primitive object={scene} />;
 }
 
+function DemoLamp() {
+    const { scene } = useGLTF('/concept-lamp-7.glb');
+    const scroll = useScroll();
+    const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
+
+    useFrame(() => {
+        setScrollPosition(scroll.offset * maxScrollPages);
+        scene.position.y = -36 - Math.max(scrollPosition - 2.46, 0) * 13.82;
+        //scene.rotation.x = Math.max(scrollPosition - 2.46, 0) * 2;
+    });
+
+    return <primitive object={scene} />;
+}
+
 function MainHtml() {
     const scroll = useScroll();
     const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
@@ -144,7 +158,8 @@ function MainHtml() {
                     <PlaceholderScene name='placeholder-1.glb' />
                     <directionalLight
                         position={[-1.2, 0.6, 1]}
-                        intensity={1}
+                        intensity={3}
+                        color='pink'
                         castShadow
                         shadow-mapSize-width={2048}
                         shadow-mapSize-height={2048}
@@ -174,7 +189,7 @@ function MainHtml() {
             })}
         </div>
         <div className='moveDownTextContainer'>
-            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px'}}>
+            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.2, 0) * 2}}>
                 <h1>The promise of the smart home, fulfilled</h1>
             </div>
         </div>
@@ -213,6 +228,7 @@ function Home() {
                 </Scroll>
                 <Scroll>
                     {/*outer 3D*/}
+                    <DemoLamp />
                 </Scroll>
             </ScrollControls>
             <RotatingCamera />
