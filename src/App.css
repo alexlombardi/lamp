@@ -1,6 +1,6 @@
 @font-face {
     font-family: 'National Park';
-    src: url('./NationalPark-VariableFont_wght.ttf') format('ttf');
+    src: url('./NationalPark-VariableFont_wght.ttf') format('truetype');
 }
 
 #root {
@@ -57,12 +57,19 @@
     text-align: center;
     color: white;
     user-select: none;
+    z-index: 10;
+    pointer-events: none;
 }
 
 .fullWidthCenteredRow {
     display: flex;
     justify-content: center;
     width: 100%;
+    transition: all 0.2s;
+}
+
+.fullWidthCenteredRow:hover {
+    transform: scale(1.01);
 }
 
 .wideCanvasContainer {
@@ -70,12 +77,101 @@
     height: calc(100vh / 3);
     border-radius: 30px;
     overflow: hidden;
+    position: relative;
 }
 
 .wideCanvas {
     width: 100%;
     height: 100%;
     box-sizing: border-box;
+}
+
+.horizontalMotionDivsContainer {
+    position: relative;
+    width: 90vw;
+    margin: 0 auto;
+    height: calc(100vh / 2);
+    margin-top: calc(100vh / 4.5);
+    display: flex;
+}
+
+.horizontalMotionDiv {
+    position: absolute;
+    height: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
+}
+
+.horizontalMotionDivInner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: 30px;
+    background-color: peachpuff;
+    transition: all 0.2s;
+    padding: 10px;
+    box-sizing: border-box;
+}
+
+.horizontalMotionDivInner:hover {
+    transform: scale(1.02);
+}
+
+.horizontalMotionDivInner:hover > .horizontalMotionDivImage {
+    margin-top: 0;
+}
+
+.horizontalMotionDivImage {
+    background-size: cover;
+    border-radius: 24px;
+    width: 100%;
+    height: 66%;
+    box-sizing: border-box;
+    margin-top: 29%;
+    transition: all ease-in-out 0.2s;
+}
+
+.horizontalMotionDivTextContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding-left: 40px;
+    padding-right: 10px;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    font-size: 2.1vh;
+    font-weight: 100;
+    box-sizing: border-box;
+}
+
+.horizontalMotionDivTextContainer > h1 {
+    margin: 0;
+    font-weight: bold;
+    line-height: 7vh;
+}
+
+.textContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: 700px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-left: 50px;
+    font-size: 2.1vh;
+    font-weight: 100;
+}
+
+.textContainer > h1 {
+    margin: 0;
+    font-weight: bold;
+    line-height: 7vh;
 }
 
 .button {
@@ -89,22 +185,22 @@
     align-items: center;
     margin: 8px;
     border-radius: 30px;
-    padding: 10px;
-    padding-left: 14px;
-    padding-right: 14px;
+    padding: 10px 0;
     text-align: center;
     cursor: pointer;
     user-select: none;
     overflow: hidden;
     animation: fall 0.5s forwards;
-    width: 60px;
+    min-width: 60px;
     height: 60px;
+    transition: all ease-out 0.1s;
 }
 
 .button:hover {
     animation: rise 0.5s forwards;
     color: 'black';
     border: 1px solid white;
+    transform: scale(1.2);
 }
 
 .button:not(:hover) > .buttonHoverCircle {

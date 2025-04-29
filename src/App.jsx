@@ -2,8 +2,9 @@ import { useState, useRef, useEffect } from 'react';
 import './App.css';
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
-import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, Text3D, Stars } from '@react-three/drei';
+import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF } from '@react-three/drei';
 import { easing, geometry } from 'maath';
+import { BrowserRouter, Routes, Route, Link } from 'react-router';
 
 extend(geometry)
 
@@ -49,45 +50,58 @@ function FloatingLight() {
     )
 }
 
-function RotatingText() {
-    const scroll = useScroll();
-    const textRef = useRef();
-
+function RotatingCamera() {
+    const { camera } = useThree();
+    const timeRef = useRef(0);
+    const radius = 10;
+    const speed = 0.1;
+    const height = 0;
     useFrame(() => {
-        if (textRef.current) {
-            const rotationValue = scroll.offset * Math.PI * 5; // Rotate based on scroll offset
-            //textRef.current.rotation.y = rotationValue;
+        timeRef.current += speed * 0.01;
+        camera.position.x = radius * Math.cos(timeRef.current);
+        camera.position.z = radius * Math.sin(timeRef.current);
+        camera.position.y = height;
+        camera.lookAt(0, 0, 0);
+    });
+}
 
-            // Move the text down to stay even with the camera as it scrolls
-            const scrollPosition = scroll.offset * 100; // Adjust multiplier based on scroll speed
-            //textRef.current.position.y = -scrollPosition;
+function RotatingCameraB() {
+    const { camera } = useThree();
+    const radius = 1;
+    const speed = 0.5;
+    const height = 1.2;
+
+    useFrame(({ clock }) => {
+        const t = clock.getElapsedTime() * speed;
+        camera.position.x = radius * Math.cos(t);
+        camera.position.z = radius * Math.sin(t);
+        camera.position.y = height;
+        camera.lookAt(0, 0, 0);
+    });
+
+    return null;
+}
+
+function PlaceholderScene(name) {
+    const { scene } = useGLTF('/placeholder-1.glb');
+    const sharedMaterial = new THREE.MeshStandardMaterial({ color: 'white', roughness: 0.5, metalness: 0, side: THREE.DoubleSide });
+
+    // Modify all meshes
+    scene.traverse((child) => {
+        if (child.isMesh) {
+            if (!child.geometry.attributes.normal) {
+              child.geometry.computeVertexNormals(); //Generate normals if missing
+            }
+            child.castShadow = true;
+            child.receiveShadow = true;
+            child.material = sharedMaterial;
+        }
+        if (child.isCamera) {
+          scene.remove(child);  //remove any cameras
         }
     });
 
-    return (
-        <Text3D
-            ref={textRef}
-            position={[-2.4, -13, 0.2]}
-            font={'./Notable_Regular.json'}
-            castShadow
-            receiveShadow
-        >
-            TEST
-            <meshPhysicalMaterial
-                side={THREE.DoubleSide}
-                roughness={0.25}
-                metalness={1}
-                iridescence={1}
-                color="red"
-                emissive="white"
-            />
-        </Text3D>
-    );
-}
-
-function CameraLight() {
-    
-    return <directionalLight color="#ffffff" position={[0, 0, 1]} rotation={[degToRad(90), 0, 0]} castShadow intensity={0.4} />
+    return <primitive object={scene} />;
 }
 
 function MainHtml() {
@@ -98,39 +112,70 @@ function MainHtml() {
     useFrame(() => {
         setScrollPosition(scroll.offset * maxScrollPages);
     });
-    
+
+    const titlePoint = 0.47;
+    var titleScale = Math.max(1 - scrollPosition / 1.2, 1 - titlePoint / 1.2);
+    var titleTop = scrollPosition > titlePoint ? 100 - (viewportHeight / 2) + (scrollPosition * viewportHeight) * 0.9 + 'px' : ''; //there must be a reason 0.9 works, but I have no idea what it is
+
+    const horizontalMotionDivs = [
+        { title: 'Smart', text: 'Brightens as you get closer to it, dims as you walk away' },
+        { title: 'Simple', text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations' },
+        { title: 'Flexible', text: 'Detach the cable to switch to battery mode, or mount the lamp in a variety of ways with included hardware' },
+        { title: 'Beautiful', text: 'A modern, minimal design that fits in any space' }
+    ];
+
     return <>
-        <video className='video' autoPlay loop muted playsInline style={{transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2}}>
+        <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2 }}>
             <source src="./vid.m4v" type="video/mp4" />
         </video>
-        <div className='mainTitle' style={{transform: `scale(${1 - scrollPosition / 2})`}}>
+        <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop }}>
             <div className='objectCanvas'>
                 <Canvas shadows camera={{ position: [0, 0, 5], fov: 75 }}>
                     <ambientLight intensity={1} />
                     <RotatingBox />
                 </Canvas>
             </div>
-            <h1>TITLE</h1>
+            <h1>LAMP</h1>
         </div>
 
         <div className='fullWidthCenteredRow'>
             <div className='wideCanvasContainer'>
-                <Canvas className='wideCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
-                    <FloatingLight />
-                    <mesh rotation={[2 * Math.PI, 0, 0]} position={[0, 0, 0]} receiveShadow>
-                        <planeGeometry args={[100, 100]} receiveShadow />
-                        <meshPhysicalMaterial side={THREE.DoubleSide} emissive={1} color={'#ffffff'} />
-                    </mesh>
-                    <RoundedBox args={[6, 3, 1]} radius={0.24} position={[0, 0, -0.3]} castShadow receiveShadow>
-                        <meshPhysicalMaterial side={THREE.DoubleSide} color={'white'} />
-                    </RoundedBox>
-                    <RotatingText />
+                <Canvas className='wideCanvas' shadows camera={{ position: [0, 1.1, 2.1], fov: 75 }}>
+                    <PlaceholderScene name='placeholder-1.glb' />
+                    <directionalLight
+                        position={[-1.2, 0.6, 1]}
+                        intensity={1}
+                        castShadow
+                        shadow-mapSize-width={2048}
+                        shadow-mapSize-height={2048}
+                        shadow-bias={-0.0005}
+                    />
                 </Canvas>
+                <div className='textContainer'>
+                    <h1>The future is looking bright.</h1>
+                    Redefine your space with smooth, dynamic lighting that reacts to your movement through your home
+                </div>
             </div>
+        </div>
+        <div className='horizontalMotionDivsContainer'>
+            {horizontalMotionDivs.map((div, i) => {
+                var divW = 150 / horizontalMotionDivs.length;
+                var x = ((scrollPosition * 100 + divW * i + 200) % 150) - 50;
+
+                return <div className='horizontalMotionDiv' key={i} style={{transform: `translateX(${x}vw)`, width: `${divW}vw`}}>
+                    <div className='horizontalMotionDivInner'>
+                        <div className='horizontalMotionDivTextContainer'>
+                            <h1>{div.title}</h1>
+                            <p>{div.text}</p>
+                        </div>
+                        <div className='horizontalMotionDivImage' style={{backgroundImage: `url('/example-1.png')`}}></div>
+                    </div>
+                </div>
+            })}
         </div>
 
         {/*debug*/}
-        <div style={{position: 'fixed', top: 50 + (scrollPosition * viewportHeight) + 'px', right: '50px', color: 'white', fontSize: '20px',}}>
+        <div style={{ position: 'fixed', top: 50 + (scrollPosition * viewportHeight) * 0.9 + 'px', right: '50px', color: 'white', fontSize: '20px', }}>
             {scrollPosition.toFixed(2)}
         </div>
     </>
@@ -151,37 +196,97 @@ function buttonUnhover(event) {
     circle.style.display = 'none'
 }
 
+function Home() {
+    return <div className="App">
+        <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
+            <SoftShadows size={33} samples={100} />
+            <FloatingLight />
+            <Environment files='/preller_drive_4k.exr' background={true} backgroundBlurriness={0.146} />
+            <ScrollControls pages={maxScrollPages} damping={0.2}>
+                <Scroll html style={{ width: '100%', height: '100%' }}>
+                    <MainHtml />
+                </Scroll>
+                <Scroll>
+                    {/*outer 3D*/}
+                </Scroll>
+            </ScrollControls>
+            <RotatingCamera />
+        </Canvas>
+        <Nav />
+    </div>
+}
+
+function About() {
+    return <div className="App">
+        <Nav />
+    </div>
+}
+
+function Shop() {
+    return <div className="App">
+        <Nav />
+    </div>
+}
+
+function FAQ() {
+    return <div className="App">
+        <Nav />
+    </div>
+}
+
+function Contact() {
+    return <div className="App">
+        <Nav />
+    </div>
+}
+
+function Nav() {
+    return <div className='overlay'>
+        <Link to='/'>
+            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+                <div className='buttonHoverCircle'></div>
+                <div className='buttonText'>HOME</div>
+            </div>
+        </Link>
+        <Link to='/about'>
+            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+                <div className='buttonHoverCircle'></div>
+                <div className='buttonText'>ABOUT</div>
+            </div>
+        </Link>
+        <Link to='/shop'>
+            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+                <div className='buttonHoverCircle'></div>
+                <div className='buttonText'>SHOP</div>
+            </div>
+        </Link>
+        <Link to='/faq'>
+            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+                <div className='buttonHoverCircle'></div>
+                <div className='buttonText'>FAQ</div>
+            </div>
+        </Link>
+        <Link to='/contact'>
+            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+                <div className='buttonHoverCircle'></div>
+                <div className='buttonText'>CONTACT</div>
+            </div>
+        </Link>
+    </div>
+}
+
 function App() {
     return (
-        <div className="App">
-            <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
-                <SoftShadows size={33} samples={100} />
-                <FloatingLight />
-                <Environment preset="city" />
-                <Stars radius={100} depth={50} count={5000} factor={7} saturation={0} fade />
-                <ScrollControls pages={maxScrollPages} damping={0.2}>
-                    <Scroll html style={{ width: '100%', height: '100%' }}>
-                        <MainHtml />
-                    </Scroll>
-                    <Scroll>
-                        <RoundedBox args={[6, 3, 1]} radius={0.24} position={[0, -12.5, -0.3]} castShadow receiveShadow>
-                            <meshPhysicalMaterial side={THREE.DoubleSide} color={'white'} />
-                        </RoundedBox>
-                        <RotatingText />
-                    </Scroll>
-                </ScrollControls>
-            </Canvas>
-            <div className='overlay'>
-                <div className='button' onClick={() => {fillAll()}} onMouseEnter={(event) => {buttonHover(event)}} onMouseLeave={(event) => {buttonUnhover(event)}}>
-                    <div className='buttonHoverCircle'></div>
-                    <div className='buttonText'>ABOUT</div>
-                </div>
-                <div className='button' onClick={() => {fillAll()}} onMouseEnter={(event) => {buttonHover(event)}} onMouseLeave={(event) => {buttonUnhover(event)}}>
-                    <div className='buttonHoverCircle'></div>
-                    <div className='buttonText'>SHOP</div>
-                </div>
-            </div>
-        </div>
+        <BrowserRouter>
+            <Routes>
+                <Route path='/' element={<Home />} />
+                <Route path='/about' element={<About />} />
+                <Route path='/shop' element={<Shop />} />
+                <Route path='/faq' element={<FAQ />} />
+                <Route path='/contact' element={<Contact />} />
+                <Route path='*' element={<Home />} />
+            </Routes>
+        </BrowserRouter>
     )
 }
 
