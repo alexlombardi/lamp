@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import './App.css';
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
-import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF } from '@react-three/drei';
+import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View } from '@react-three/drei';
 import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 
@@ -111,11 +111,20 @@ function DemoLamp() {
 
     useFrame(() => {
         setScrollPosition(scroll.offset * maxScrollPages);
-        scene.position.y = -36 - Math.max(scrollPosition - 2.46, 0) * 13.82;
-        //scene.rotation.x = Math.max(scrollPosition - 2.46, 0) * 2;
+        scene.position.y = -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82;
+        //scene.rotation.x = Math.max(scrollPosition - 2.70, 0) * 2;
     });
 
-    return <primitive object={scene} />;
+    return <>
+        <primitive object={scene} />
+        <pointLight
+            color="#fff2d5"
+            position={[0, -40 - Math.max(scrollPosition - 2.7, 0) * 13.82, 0]}
+            intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 80}
+            castShadow
+        />
+        <directionalLight rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 10} />
+    </>;
 }
 
 function MainHtml() {
@@ -132,23 +141,43 @@ function MainHtml() {
     var titleTop = scrollPosition > titlePoint ? 100 - (viewportHeight / 2) + (scrollPosition * viewportHeight) * 0.9 + 'px' : ''; //there must be a reason 0.9 works, but I have no idea what it is
 
     const horizontalMotionDivs = [
-        { title: 'Smart', text: 'Brightens as you get closer to it, dims as you walk away', image: '/example-1.jpg' },
-        { title: 'Simple', text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations', image: '/example-2.jpg' },
-        { title: 'Flexible', text: 'Detach the cable to switch to battery mode, or mount the lamp in a variety of ways with included hardware', image: '/example-3.jpg' },
-        { title: 'Beautiful', text: 'A modern, minimal design that fits in any space', image: '/example-4.jpg' },
+        {
+            title: 'Smart', 
+            text: 'Brightens as you get closer to it, dims as you walk away', 
+            more: 'Using a combination of sensors, the lamp can detect your presence and adjust its brightness accordingly. Enjoy a well-lit space without having to fiddle with switches or apps',
+            image: '/example-1.jpg' 
+        },
+        { 
+            title: 'Simple', 
+            text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations', 
+            more: 'Just plug it in and it will automatically adjust to your space. No need to download an app or set up complicated automations',
+            image: '/example-2.jpg' 
+        },
+        { 
+            title: 'Flexible', 
+            text: 'Detach the cable to switch to battery mode, or mount the lamp with included hardware and optional accessories', 
+            more: 'Magnetic cable allows for easy detachment and reattachment, while the included mounting hardware lets you place the lamp wherever you want',
+            image: '/example-3.jpg' 
+        },
+        { 
+            title: 'Beautiful', 
+            text: 'A modern, minimal design that fits in any space', 
+            more: 'Available in a variety of colors and finishes, including black, white, and gold',
+            image: '/example-4.jpg' 
+        },
     ];
 
     return <>
         <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }}>
-            <source src="./vid.m4v" type="video/mp4" />
+            <source src="./vid-2.mp4" type="video/mp4" />
         </video>
         <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop }}>
-            <div className='objectCanvas'>
+            {/*<div className='objectCanvas'>
                 <Canvas shadows camera={{ position: [0, 0, 5], fov: 75 }}>
                     <ambientLight intensity={1} />
                     <RotatingBox />
                 </Canvas>
-            </div>
+            </div>*/}
             <h1>LAMP</h1>
         </div>
 
@@ -172,24 +201,9 @@ function MainHtml() {
                 </div>
             </div>
         </div>
-        <div className='horizontalMotionDivsContainer'>
-            {horizontalMotionDivs.map((div, i) => {
-                var divW = 150 / horizontalMotionDivs.length;
-                var x = ((scrollPosition * 100 + divW * i + 200) % 150) - 50;
-
-                return <div className='horizontalMotionDiv' key={i} style={{transform: `translateX(${x}vw)`, width: `${divW}vw`}}>
-                    <div className='horizontalMotionDivInner'>
-                        <div className='horizontalMotionDivTextContainer'>
-                            <h1>{div.title}</h1>
-                            <p>{div.text}</p>
-                        </div>
-                        <div className='horizontalMotionDivImage' style={{backgroundImage: `url(${div.image})`}}></div>
-                    </div>
-                </div>
-            })}
-        </div>
+        {renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition)}
         <div className='moveDownTextContainer'>
-            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.2, 0) * 2}}>
+            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.5, 0) * 2}}>
                 <h1>The promise of the smart home, fulfilled</h1>
             </div>
         </div>
@@ -200,7 +214,82 @@ function MainHtml() {
         </div>
     </>
 }
-//
+
+function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
+    const [velocity, setVelocity] = useState(0);
+    const [draggedValue, setDraggedValue] = useState(0);
+    const animationFrame = useRef(null);
+    const isDragging = useRef(false);
+    const lastX = useRef(0);
+    const velocityRef = useRef(0);
+
+    const updatePosition = () => {
+      setDraggedValue((prev) => {
+        let next = prev + velocityRef.current;
+        return next;
+      });
+  
+      velocityRef.current *= 0.99; // reduce friction even more gently
+  
+      if (Math.abs(velocityRef.current) > 0.05) {
+        animationFrame.current = requestAnimationFrame(updatePosition);
+      } else {
+        velocityRef.current = 0;
+      }
+    };
+  
+    const handlePointerDown = (e) => {
+      isDragging.current = true;
+      lastX.current = e.clientX;
+      cancelAnimationFrame(animationFrame.current);
+  
+      const handleMove = (moveEvent) => {
+        const deltaX = moveEvent.clientX - lastX.current;
+        lastX.current = moveEvent.clientX;
+        setDraggedValue((prev) => {
+          let next = prev + deltaX;
+          return next;
+        });
+        velocityRef.current = deltaX; // store velocity directly in ref for persistence
+      };
+  
+      const handleUp = () => {
+        isDragging.current = false;
+        window.removeEventListener("pointermove", handleMove);
+        window.removeEventListener("pointerup", handleUp);
+        animationFrame.current = requestAnimationFrame(updatePosition);
+      };
+  
+      window.addEventListener("pointermove", handleMove);
+      window.addEventListener("pointerup", handleUp);
+    };
+
+    return <div className='horizontalMotionDivsContainer' onPointerDown={handlePointerDown}>
+        {horizontalMotionDivs.map((div, i) => {
+            function modulo(value, range) {
+                return ((value % range) + range) % range;
+            }
+
+            var divW = 150 / horizontalMotionDivs.length;
+            var x = modulo((scrollPosition * 100 + divW * i + 200 + (draggedValue / 15)), 150) - 50;
+
+            return <div className='horizontalMotionDiv' key={i} style={{transform: `translateX(${x}vw)`, width: `${divW}vw`}}>
+                <div className='horizontalMotionDivInner'>
+                    <div className='horizontalMotionDivImage' style={{backgroundImage: `url(${div.image})`}}>
+                        <div className='horizontalMotionDivTextContainer'>
+                            <h1>{div.title}</h1>
+                            <p>{div.text}</p>
+                        </div>
+                    </div>
+                    <div className='horizontalMotionDivMoreTextContainer'>
+                        <p>{div.more}</p>
+                    </div>
+                </div>
+            </div>
+        })}
+    </div>
+}
+
 function buttonHover(event) {
     const rect = event.currentTarget.getBoundingClientRect();
     const circle = event.currentTarget.querySelector('.buttonHoverCircle');
@@ -220,8 +309,25 @@ function Home() {
     return <div className="App">
         <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
             <SoftShadows size={33} samples={100} />
-            <FloatingLight />
-            <Environment files='/autumn_field_puresky_4k.exr' background={true} />
+            <mesh rotation={[0, 0, 0]} position={[0, 0, -5]} receiveShadow>
+                <planeGeometry args={[500, 500]} />
+                <meshStandardMaterial 
+                    map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        texture.repeat.set(50, 50); // Adjust the repeat values as needed
+                    })} 
+                />
+            </mesh>
+            <pointLight
+                color="#fff2d5"
+                position={[0, 10, 0]}
+                angle={Math.PI / 5}
+                penumbra={0.5}
+                intensity={20}
+                castShadow
+                target={new THREE.Object3D().position.set(0, 0, -5)}
+            />
             <ScrollControls pages={maxScrollPages} damping={0.2}>
                 <Scroll html style={{ width: '100%', height: '100%' }}>
                     <MainHtml />
@@ -231,7 +337,6 @@ function Home() {
                     <DemoLamp />
                 </Scroll>
             </ScrollControls>
-            <RotatingCamera />
         </Canvas>
         <Nav />
     </div>

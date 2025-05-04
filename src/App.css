@@ -11,7 +11,7 @@
     font-family: 'National Park', sans-serif;
 }
 
-.App {
+.App, .transitionGroup {
     width: 100%;
     height: 100%;
 }
@@ -73,8 +73,8 @@
 }
 
 .wideCanvasContainer {
-    width: 90vw;
-    height: calc(100vh / 3);
+    width: 98vw;
+    height: calc(100vh / 2.5);
     border-radius: 30px;
     overflow: hidden;
     position: relative;
@@ -93,6 +93,7 @@
     height: calc(100vh / 2);
     margin-top: calc(100vh / 4.5);
     display: flex;
+    user-select: none;
 }
 
 .horizontalMotionDiv {
@@ -108,7 +109,8 @@
     height: 100%;
     overflow: hidden;
     border-radius: 30px;
-    background-color: peachpuff;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), rgb(0, 0, 0));
+    border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.2s;
     padding: 10px;
     box-sizing: border-box;
@@ -116,6 +118,8 @@
 
 .horizontalMotionDivInner:hover {
     transform: scale(1.02);
+    background: radial-gradient(circle, rgb(255, 255, 255), rgb(161, 161, 161));
+    box-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
 }
 
 .horizontalMotionDivInner:hover > .horizontalMotionDivImage {
@@ -123,6 +127,7 @@
 }
 
 .horizontalMotionDivImage {
+    position: relative;
     background-size: cover;
     background-position: center;
     border-radius: 24px;
@@ -130,7 +135,7 @@
     height: 66%;
     box-sizing: border-box;
     margin-top: 16.3vh;
-    transition: all ease-in-out 0.2s;
+    transition: all cubic-bezier(0.075, 0.82, 0.165, 1) 0.2s;
 }
 
 .horizontalMotionDivTextContainer {
@@ -147,6 +152,7 @@
     font-size: 2.1vh;
     font-weight: 100;
     box-sizing: border-box;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
 .horizontalMotionDivTextContainer > h1 {
@@ -155,10 +161,19 @@
     line-height: 7vh;
 }
 
+.horizontalMotionDivMoreTextContainer {
+    font-style: italic;
+    font-size: 1.5vh;
+    color: #5a4d46;
+    padding: 0 20px;
+}
+
 .moveDownTextContainer {
     width: 100%;
     display: flex;
     justify-content: center;
+    pointer-events: none;
+    user-select: none;
 }
 
 .textContainer {
