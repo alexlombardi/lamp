@@ -56,6 +56,7 @@
     font-size: 50px;
     text-align: center;
     color: white;
+    text-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
     user-select: none;
     z-index: 10;
     pointer-events: none;
@@ -78,6 +79,7 @@
     border-radius: 30px;
     overflow: hidden;
     position: relative;
+    border: 1px solid white;
 }
 
 .wideCanvas {
@@ -104,6 +106,7 @@
 }
 
 .horizontalMotionDivInner {
+    color: white;
     position: relative;
     width: 100%;
     height: 100%;
@@ -118,8 +121,8 @@
 
 .horizontalMotionDivInner:hover {
     transform: scale(1.02);
-    background: radial-gradient(circle, rgb(255, 255, 255), rgb(161, 161, 161));
-    box-shadow: 0 0 50px rgba(255, 255, 255, 0.5);
+    background: radial-gradient(circle, rgb(255, 242, 213), rgb(168, 158, 139));
+    box-shadow: 0 0 50px rgba(255, 242, 213, 0.5);
 }
 
 .horizontalMotionDivInner:hover > .horizontalMotionDivImage {
@@ -218,8 +221,7 @@
     transition: all ease-out 0.1s;
 }
 
-.button:hover {
-    animation: rise 0.5s forwards;
+.button:hover:not(.buttonClickAnimation) {
     color: 'black';
     border: 1px solid white;
     transform: scale(1.2);
@@ -252,4 +254,49 @@
     100% {
         transform: translate(-50%, -50%) scale(1);
     }
+}
+
+.buttonClickAnimation {
+    animation: buttonClickAnimation ease-in-out 0.3s forwards;
+}
+
+@keyframes buttonClickAnimation {
+    0% {
+        transform: scale(1.2);
+    }
+    50% {
+        transform: scale(1.8);
+    }
+    100% {
+        transform: scale(1.2);
+    }
+}
+
+.pageTransitionAnimationContainer {
+    position: relative;
+    height: 100%;
+    width: 100%;
+}
+
+.aboutContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.aboutBox {
+    width: 98vw;
+    height: 80vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 2.1vh;
+    font-weight: 100;
+    color: white;
+    text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border: 1px solid white;
+    border-radius: 30px;
 }

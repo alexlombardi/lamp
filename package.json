@@ -13,11 +13,12 @@
     "@isaac_ua/drei-html-fix": "^0.2.1",
     "@react-three/drei": "^10.0.4",
     "@react-three/fiber": "^9.1.0",
+    "chroma-js": "^3.1.2",
     "framer-motion": "^12.9.4",
     "maath": "^0.10.8",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router": "^7.5.1"
+    "react-router-dom": "^7.5.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

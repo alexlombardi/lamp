@@ -5,10 +5,19 @@ import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
 import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View } from '@react-three/drei';
 import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
+import { AnimatePresence, motion } from 'framer-motion';
+import chroma from 'chroma-js';
 
 extend(geometry)
 
 const maxScrollPages = 10;
+
+const pageTransitionAnimations = {
+    initial: { opacity: 0, transform: 'translate(0, -120px)' },
+    animate: { opacity: 1, transform: 'translate(0, 0)' },
+    exit: { opacity: 0, transform: 'translate(0, 0)' },
+    transition: { duration: 0.3 }
+}
 
 function degToRad(degrees) {
     return degrees * (Math.PI / 180);
@@ -90,14 +99,14 @@ function PlaceholderScene(name) {
     scene.traverse((child) => {
         if (child.isMesh) {
             if (!child.geometry.attributes.normal) {
-              child.geometry.computeVertexNormals(); //Generate normals if missing
+                child.geometry.computeVertexNormals(); //Generate normals if missing
             }
             child.castShadow = true;
             child.receiveShadow = true;
             child.material = sharedMaterial;
         }
         if (child.isCamera) {
-          scene.remove(child);  //remove any cameras
+            scene.remove(child);  //remove any cameras
         }
     });
 
@@ -119,15 +128,15 @@ function DemoLamp() {
         <primitive object={scene} />
         <pointLight
             color="#fff2d5"
-            position={[0, -40 - Math.max(scrollPosition - 2.7, 0) * 13.82, 0]}
-            intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 80}
+            position={[0, -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82, 0]}
+            intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 50}
             castShadow
         />
-        <directionalLight rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 10} />
+        <directionalLight position={[0, 0, 2]} rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 15} />
     </>;
 }
 
-function MainHtml() {
+function HomeHtml() {
     const scroll = useScroll();
     const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
     const viewportHeight = window.innerHeight;
@@ -142,32 +151,32 @@ function MainHtml() {
 
     const horizontalMotionDivs = [
         {
-            title: 'Smart', 
-            text: 'Brightens as you get closer to it, dims as you walk away', 
+            title: 'Smart',
+            text: 'Brightens as you get closer to it, dims as you walk away',
             more: 'Using a combination of sensors, the lamp can detect your presence and adjust its brightness accordingly. Enjoy a well-lit space without having to fiddle with switches or apps',
-            image: '/example-1.jpg' 
+            image: '/example-1.jpg'
         },
-        { 
-            title: 'Simple', 
-            text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations', 
+        {
+            title: 'Simple',
+            text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations',
             more: 'Just plug it in and it will automatically adjust to your space. No need to download an app or set up complicated automations',
-            image: '/example-2.jpg' 
+            image: '/example-2.jpg'
         },
-        { 
-            title: 'Flexible', 
-            text: 'Detach the cable to switch to battery mode, or mount the lamp with included hardware and optional accessories', 
+        {
+            title: 'Flexible',
+            text: 'Detach the cable to switch to battery mode, or mount the lamp with included hardware and optional accessories',
             more: 'Magnetic cable allows for easy detachment and reattachment, while the included mounting hardware lets you place the lamp wherever you want',
-            image: '/example-3.jpg' 
+            image: '/example-3.jpg'
         },
-        { 
-            title: 'Beautiful', 
-            text: 'A modern, minimal design that fits in any space', 
+        {
+            title: 'Beautiful',
+            text: 'A modern, minimal design that fits in any space',
             more: 'Available in a variety of colors and finishes, including black, white, and gold',
-            image: '/example-4.jpg' 
+            image: '/example-4.jpg'
         },
     ];
 
-    return <>
+    return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
         <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }}>
             <source src="./vid-2.mp4" type="video/mp4" />
         </video>
@@ -183,7 +192,7 @@ function MainHtml() {
 
         <div className='fullWidthCenteredRow'>
             <div className='wideCanvasContainer'>
-                <Canvas className='wideCanvas' shadows camera={{ position: [0, 1.1, 2.1], fov: 75 }}>
+                {/*<View className='wideCanvas'>
                     <PlaceholderScene name='placeholder-1.glb' />
                     <directionalLight
                         position={[-1.2, 0.6, 1]}
@@ -194,7 +203,7 @@ function MainHtml() {
                         shadow-mapSize-height={2048}
                         shadow-bias={-0.0005}
                     />
-                </Canvas>
+                </View>*/}
                 <div className='textContainer'>
                     <h1>The future is looking bright.</h1>
                     Redefine your space with smooth, dynamic lighting that reacts to your movement through your home
@@ -203,7 +212,7 @@ function MainHtml() {
         </div>
         {renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition)}
         <div className='moveDownTextContainer'>
-            <div className='moveDownText' style={{marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.5, 0) * 2}}>
+            <div className='moveDownText' style={{ marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.5, 0) * 2 }}>
                 <h1>The promise of the smart home, fulfilled</h1>
             </div>
         </div>
@@ -212,7 +221,79 @@ function MainHtml() {
         <div style={{ position: 'fixed', top: 50 + (scrollPosition * viewportHeight) * 0.9 + 'px', right: '50px', color: 'white', fontSize: '20px', }}>
             {scrollPosition.toFixed(2)}
         </div>
-    </>
+    </motion.div>
+}
+
+function AboutHtml() {
+    const scroll = useScroll();
+    const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
+    const viewportHeight = window.innerHeight;
+
+    useFrame(() => {
+        setScrollPosition(scroll.offset * maxScrollPages);
+    });
+
+    return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
+        <div className='aboutContainer'>
+            <div className='aboutBox'>
+                <h1>About</h1>
+            </div>
+        </div>
+    </motion.div>
+}
+
+function ShopHtml() {
+    const scroll = useScroll();
+    const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
+    const viewportHeight = window.innerHeight;
+
+    useFrame(() => {
+        setScrollPosition(scroll.offset * maxScrollPages);
+    });
+
+    return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
+        <div className='aboutContainer'>
+            <div className='aboutBox'>
+                <h1>Shop</h1>
+            </div>
+        </div>
+    </motion.div>
+}
+
+function FAQHtml() {
+    const scroll = useScroll();
+    const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
+    const viewportHeight = window.innerHeight;
+
+    useFrame(() => {
+        setScrollPosition(scroll.offset * maxScrollPages);
+    });
+
+    return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
+        <div className='aboutContainer'>
+            <div className='aboutBox'>
+                <h1>FAQ</h1>
+            </div>
+        </div>
+    </motion.div>
+}
+
+function ContactHtml() {
+    const scroll = useScroll();
+    const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
+    const viewportHeight = window.innerHeight;
+
+    useFrame(() => {
+        setScrollPosition(scroll.offset * maxScrollPages);
+    });
+
+    return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
+        <div className='aboutContainer'>
+            <div className='aboutBox'>
+                <h1>Contact</h1>
+            </div>
+        </div>
+    </motion.div>
 }
 
 function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
@@ -224,44 +305,44 @@ function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
     const velocityRef = useRef(0);
 
     const updatePosition = () => {
-      setDraggedValue((prev) => {
-        let next = prev + velocityRef.current;
-        return next;
-      });
-  
-      velocityRef.current *= 0.99; // reduce friction even more gently
-  
-      if (Math.abs(velocityRef.current) > 0.05) {
-        animationFrame.current = requestAnimationFrame(updatePosition);
-      } else {
-        velocityRef.current = 0;
-      }
-    };
-  
-    const handlePointerDown = (e) => {
-      isDragging.current = true;
-      lastX.current = e.clientX;
-      cancelAnimationFrame(animationFrame.current);
-  
-      const handleMove = (moveEvent) => {
-        const deltaX = moveEvent.clientX - lastX.current;
-        lastX.current = moveEvent.clientX;
         setDraggedValue((prev) => {
-          let next = prev + deltaX;
-          return next;
+            let next = prev + velocityRef.current;
+            return next;
         });
-        velocityRef.current = deltaX; // store velocity directly in ref for persistence
-      };
-  
-      const handleUp = () => {
-        isDragging.current = false;
-        window.removeEventListener("pointermove", handleMove);
-        window.removeEventListener("pointerup", handleUp);
-        animationFrame.current = requestAnimationFrame(updatePosition);
-      };
-  
-      window.addEventListener("pointermove", handleMove);
-      window.addEventListener("pointerup", handleUp);
+
+        velocityRef.current *= 0.99; // reduce friction even more gently
+
+        if (Math.abs(velocityRef.current) > 0.05) {
+            animationFrame.current = requestAnimationFrame(updatePosition);
+        } else {
+            velocityRef.current = 0;
+        }
+    };
+
+    const handlePointerDown = (e) => {
+        isDragging.current = true;
+        lastX.current = e.clientX;
+        cancelAnimationFrame(animationFrame.current);
+
+        const handleMove = (moveEvent) => {
+            const deltaX = moveEvent.clientX - lastX.current;
+            lastX.current = moveEvent.clientX;
+            setDraggedValue((prev) => {
+                let next = prev + deltaX;
+                return next;
+            });
+            velocityRef.current = deltaX; // store velocity directly in ref for persistence
+        };
+
+        const handleUp = () => {
+            isDragging.current = false;
+            window.removeEventListener("pointermove", handleMove);
+            window.removeEventListener("pointerup", handleUp);
+            animationFrame.current = requestAnimationFrame(updatePosition);
+        };
+
+        window.addEventListener("pointermove", handleMove);
+        window.addEventListener("pointerup", handleUp);
     };
 
     return <div className='horizontalMotionDivsContainer' onPointerDown={handlePointerDown}>
@@ -273,9 +354,9 @@ function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
             var divW = 150 / horizontalMotionDivs.length;
             var x = modulo((scrollPosition * 100 + divW * i + 200 + (draggedValue / 15)), 150) - 50;
 
-            return <div className='horizontalMotionDiv' key={i} style={{transform: `translateX(${x}vw)`, width: `${divW}vw`}}>
+            return <div className='horizontalMotionDiv' key={i} style={{ transform: `translateX(${x}vw)`, width: `${divW}vw` }}>
                 <div className='horizontalMotionDivInner'>
-                    <div className='horizontalMotionDivImage' style={{backgroundImage: `url(${div.image})`}}>
+                    <div className='horizontalMotionDivImage' style={{ backgroundImage: `url(${div.image})` }}>
                         <div className='horizontalMotionDivTextContainer'>
                             <h1>{div.title}</h1>
                             <p>{div.text}</p>
@@ -306,94 +387,89 @@ function buttonUnhover(event) {
 }
 
 function Home() {
-    return <div className="App">
-        <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
-            <SoftShadows size={33} samples={100} />
-            <mesh rotation={[0, 0, 0]} position={[0, 0, -5]} receiveShadow>
-                <planeGeometry args={[500, 500]} />
-                <meshStandardMaterial 
-                    map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        texture.repeat.set(50, 50); // Adjust the repeat values as needed
-                    })} 
-                />
-            </mesh>
-            <pointLight
-                color="#fff2d5"
-                position={[0, 10, 0]}
-                angle={Math.PI / 5}
-                penumbra={0.5}
-                intensity={20}
-                castShadow
-                target={new THREE.Object3D().position.set(0, 0, -5)}
-            />
-            <ScrollControls pages={maxScrollPages} damping={0.2}>
-                <Scroll html style={{ width: '100%', height: '100%' }}>
-                    <MainHtml />
-                </Scroll>
-                <Scroll>
-                    {/*outer 3D*/}
-                    <DemoLamp />
-                </Scroll>
-            </ScrollControls>
-        </Canvas>
-        <Nav />
-    </div>
+    return <ScrollControls pages={maxScrollPages} damping={0.2}>
+        <Scroll html style={{ width: '100%', height: '100%' }}>
+            <HomeHtml />
+        </Scroll>
+        <Scroll>
+            {/*outer 3D*/}
+            <DemoLamp />
+        </Scroll>
+    </ScrollControls>
 }
 
 function About() {
-    return <div className="App">
-        <Nav />
-    </div>
+    return <ScrollControls pages={maxScrollPages} damping={0.2}>
+        <Scroll html style={{ width: '100%', height: '100%' }}>
+            <AboutHtml />
+        </Scroll>
+        <Scroll>
+            {/*outer 3D*/}
+        </Scroll>
+    </ScrollControls>
 }
 
 function Shop() {
-    return <div className="App">
-        <Nav />
-    </div>
+    return <ScrollControls pages={maxScrollPages} damping={0.2}>
+        <Scroll html style={{ width: '100%', height: '100%' }}>
+            <ShopHtml />
+        </Scroll>
+        <Scroll>
+            {/*outer 3D*/}
+        </Scroll>
+    </ScrollControls>
 }
 
 function FAQ() {
-    return <div className="App">
-        <Nav />
-    </div>
+    return <ScrollControls pages={maxScrollPages} damping={0.2}>
+        <Scroll html style={{ width: '100%', height: '100%' }}>
+            <FAQHtml />
+        </Scroll>
+        <Scroll>
+            {/*outer 3D*/}
+        </Scroll>
+    </ScrollControls>
 }
 
 function Contact() {
-    return <div className="App">
-        <Nav />
-    </div>
+    return <ScrollControls pages={maxScrollPages} damping={0.2}>
+        <Scroll html style={{ width: '100%', height: '100%' }}>
+            <ContactHtml />
+        </Scroll>
+        <Scroll>
+            {/*outer 3D*/}
+        </Scroll>
+    </ScrollControls>
 }
 
 function Nav() {
     return <div className='overlay'>
         <Link to='/'>
-            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+            <div className='button' onClick={(event) => { buttonClickAnimation(event) }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
                 <div className='buttonHoverCircle'></div>
                 <div className='buttonText'>HOME</div>
             </div>
         </Link>
         <Link to='/about'>
-            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+            <div className='button' onClick={(event) => { buttonClickAnimation(event) }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
                 <div className='buttonHoverCircle'></div>
                 <div className='buttonText'>ABOUT</div>
             </div>
         </Link>
         <Link to='/shop'>
-            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+            <div className='button' onClick={(event) => { buttonClickAnimation(event) }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
                 <div className='buttonHoverCircle'></div>
                 <div className='buttonText'>SHOP</div>
             </div>
         </Link>
         <Link to='/faq'>
-            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+            <div className='button' onClick={(event) => { buttonClickAnimation(event) }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
                 <div className='buttonHoverCircle'></div>
                 <div className='buttonText'>FAQ</div>
             </div>
         </Link>
         <Link to='/contact'>
-            <div className='button' onClick={() => { }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
+            <div className='button' onClick={(event) => { buttonClickAnimation(event) }} onMouseEnter={(event) => { buttonHover(event) }} onMouseLeave={(event) => { buttonUnhover(event) }}>
                 <div className='buttonHoverCircle'></div>
                 <div className='buttonText'>CONTACT</div>
             </div>
@@ -401,17 +477,43 @@ function Nav() {
     </div>
 }
 
+function buttonClickAnimation(event) {
+    const element = event.currentTarget;
+    element.classList.add('buttonClickAnimation');
+    setTimeout(() => {
+        element.classList.remove('buttonClickAnimation');
+    }, 300);
+}
+
 function App() {
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path='/' element={<Home />} />
-                <Route path='/about' element={<About />} />
-                <Route path='/shop' element={<Shop />} />
-                <Route path='/faq' element={<FAQ />} />
-                <Route path='/contact' element={<Contact />} />
-                <Route path='*' element={<Home />} />
-            </Routes>
+            <Nav />
+            <motion.div className="App" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
+                <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
+                    <SoftShadows size={33} samples={100} />
+                    <mesh rotation={[0, 0, 0]} position={[0, 0, -5]} receiveShadow>
+                        <planeGeometry args={[500, 500]} />
+                        <meshStandardMaterial
+                            map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
+                                texture.wrapS = THREE.RepeatWrapping;
+                                texture.wrapT = THREE.RepeatWrapping;
+                                texture.repeat.set(50, 50); // Adjust the repeat values as needed
+                            })}
+                        />
+                    </mesh>
+                    <AnimatePresence mode="wait">
+                        <Routes>
+                            <Route path='/' element={<Home />} />
+                            <Route path='/about' element={<About />} />
+                            <Route path='/shop' element={<Shop />} />
+                            <Route path='/faq' element={<FAQ />} />
+                            <Route path='/contact' element={<Contact />} />
+                            <Route path='*' element={<Home />} />
+                        </Routes>
+                    </AnimatePresence>
+                </Canvas>
+            </motion.div>
         </BrowserRouter>
     )
 }
