@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useMemo } from 'react';
 import './App.css';
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
-import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View } from '@react-three/drei';
+import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View, Points, PointMaterial } from '@react-three/drei';
 import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -13,10 +13,10 @@ extend(geometry)
 const maxScrollPages = 10;
 
 const pageTransitionAnimations = {
-    initial: { opacity: 0, transform: 'translate(0, -120px)' },
-    animate: { opacity: 1, transform: 'translate(0, 0)' },
-    exit: { opacity: 0, transform: 'translate(0, 0)' },
-    transition: { duration: 0.3 }
+    initial: { opacity: 0, transform: 'scale(3.5)', filter: 'blur(10px)' },
+    animate: { opacity: 1, transform: 'translate(0, 0)', filter: 'blur(0)' },
+    exit: { opacity: 0, transform: 'translate(0, 0)', filter: 'blur(0)' },
+    transition: { duration: 0.5, ease: [0.2, 0.6, 0.2, 1] }
 }
 
 function degToRad(degrees) {
@@ -74,21 +74,107 @@ function RotatingCamera() {
     });
 }
 
-function RotatingCameraB() {
-    const { camera } = useThree();
-    const radius = 1;
-    const speed = 0.5;
-    const height = 1.2;
+function FireflyCloud({ count = 250 }) {
+    const pointsRef = useRef();
 
-    useFrame(({ clock }) => {
-        const t = clock.getElapsedTime() * speed;
-        camera.position.x = radius * Math.cos(t);
-        camera.position.z = radius * Math.sin(t);
-        camera.position.y = height;
-        camera.lookAt(0, 0, 0);
+    const positions = useMemo(() => {
+        const posArray = new Float32Array(count * 3);
+        for (let i = 0; i < count; i++) {
+            posArray[i * 3] = (Math.random() - 0.5) * 20;
+            posArray[i * 3 + 1] = (Math.random() - 0.5) * 20;
+            posArray[i * 3 + 2] = (Math.random() - 0.5) * 20;
+        }
+        return posArray;
+    }, [count]);
+
+    const velocities = useMemo(() => {
+        const velArray = [];
+        for (let i = 0; i < count; i++) {
+            velArray.push([
+                (Math.random() - 0.5) * 0.01,
+                (Math.random() - 0.5) * 0.01,
+                (Math.random() - 0.5) * 0.01
+            ]);
+        }
+        return velArray;
+    }, [count]);
+
+    const opacities = useMemo(() => {
+        const opacityArray = new Float32Array(count);
+        for (let i = 0; i < count; i++) {
+            opacityArray[i] = Math.random();
+        }
+        return opacityArray;
+    }, [count]);
+
+    useFrame((state) => {
+        const pos = pointsRef.current.geometry.attributes.position.array;
+        const opacityAttr = pointsRef.current.geometry.attributes.opacity.array;
+        const time = state.clock.elapsedTime;
+
+        for (let i = 0; i < count; i++) {
+            pos[i * 3] += velocities[i][0] + Math.sin(time * 0.3 + i) * 0.003;
+            pos[i * 3 + 1] += velocities[i][1] + Math.cos(time * 0.2 + i * 0.5) * 0.003;
+            pos[i * 3 + 2] += velocities[i][2] + Math.sin(time * 0.4 + i * 0.3) * 0.003;
+
+            for (let j = 0; j < 3; j++) {
+                if (pos[i * 3 + j] > 10) {
+                    pos[i * 3 + j] = 10;
+                    velocities[i][j] *= -1;
+                }
+                if (pos[i * 3 + j] < -10) {
+                    pos[i * 3 + j] = -10;
+                    velocities[i][j] *= -1;
+                }
+            }
+
+            opacityAttr[i] = 0.5 + 0.5 * Math.sin(time * 5 + i);
+        }
+
+        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        pointsRef.current.geometry.attributes.opacity.needsUpdate = true;
     });
 
-    return null;
+    return (
+        <points ref={pointsRef} frustumCulled={false}>
+            <bufferGeometry>
+                <bufferAttribute
+                    attach="attributes-position"
+                    array={positions}
+                    count={count}
+                    itemSize={3}
+                />
+                <bufferAttribute
+                    attach="attributes-opacity"
+                    array={opacities}
+                    count={count}
+                    itemSize={1}
+                />
+            </bufferGeometry>
+            <shaderMaterial
+                blending={THREE.AdditiveBlending}
+                depthWrite={false}
+                transparent
+                vertexShader={`
+            attribute float opacity;
+            varying float vOpacity;
+            void main() {
+              vOpacity = opacity;
+              gl_PointSize = 10.0;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+                fragmentShader={`
+            varying float vOpacity;
+            void main() {
+              float dist = distance(gl_PointCoord, vec2(0.5));
+              if (dist > 0.5) discard;
+              gl_FragColor = vec4(1.0, 1.0, 1.0, vOpacity * (1.0 - dist * 2.0));
+            }
+          `}
+            />
+        </points>
+    );
 }
 
 function PlaceholderScene(name) {
@@ -113,7 +199,7 @@ function PlaceholderScene(name) {
     return <primitive object={scene} />;
 }
 
-function DemoLamp() {
+function DemoLamp({ lightDark, setLightDark }) {
     const { scene } = useGLTF('/concept-lamp-7.glb');
     const scroll = useScroll();
     const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
@@ -121,6 +207,7 @@ function DemoLamp() {
     useFrame(() => {
         setScrollPosition(scroll.offset * maxScrollPages);
         scene.position.y = -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82;
+        //setLightDark(Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) / 1.5);
         //scene.rotation.x = Math.max(scrollPosition - 2.70, 0) * 2;
     });
 
@@ -136,10 +223,12 @@ function DemoLamp() {
     </>;
 }
 
-function HomeHtml() {
+function HomeHtml({lightDark, setLightDark}) {
     const scroll = useScroll();
     const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
     const viewportHeight = window.innerHeight;
+    const lightDarkScale = chroma.scale(['#fff', '#05361b']);
+    const lightDarkColor = lightDarkScale(lightDark).hex();
 
     useFrame(() => {
         setScrollPosition(scroll.offset * maxScrollPages);
@@ -180,7 +269,7 @@ function HomeHtml() {
         <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }}>
             <source src="./vid-2.mp4" type="video/mp4" />
         </video>
-        <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop }}>
+        <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop, color: lightDarkColor }}>
             {/*<div className='objectCanvas'>
                 <Canvas shadows camera={{ position: [0, 0, 5], fov: 75 }}>
                     <ambientLight intensity={1} />
@@ -239,6 +328,22 @@ function AboutHtml() {
                 <h1>About</h1>
             </div>
         </div>
+        <div className='aboutContainer'>
+            <div className='aboutParagraph'>
+                Based in Westchester, NY and founded by two brothers, <span className='aboutSpan'>COMPANY</span> is a small, family-owned company focused on creating intuitive, functional products that fit seamlessly into your life. We believe that technology should be simple, beautiful, and easy to use. Our products are all assembled by hand, and we prioritize quality and craftsmanship in everything we do.
+            </div>
+        </div>
+        <div className='aboutContainer'>
+            <div className='aboutParagraph'>
+                <span className='aboutSpan'>LAMP</span> is our first product. We believe there is nothing else like it available today - a standalone smart home lamp that just works, right out of the box, and feels like the future. We hope you like it, too.
+            </div>
+        </div>
+        {/*<div className='aboutContainer'>
+            <div className='aboutImage' style={{backgroundImage: 'url(\'/alex-1.png\')'}}></div>
+            <div className='aboutParagraph'>
+                <span className='aboutSpan'>ALEX</span> is pretty cool I guess.
+            </div>
+        </div>*/}
     </motion.div>
 }
 
@@ -386,14 +491,14 @@ function buttonUnhover(event) {
     circle.style.display = 'none'
 }
 
-function Home() {
+function Home({lightDark, setLightDark}) {
     return <ScrollControls pages={maxScrollPages} damping={0.2}>
         <Scroll html style={{ width: '100%', height: '100%' }}>
-            <HomeHtml />
+            <HomeHtml lightDark={lightDark} setLightDark={setLightDark} />
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
-            <DemoLamp />
+            <DemoLamp lightDark={lightDark} setLightDark={setLightDark} />
         </Scroll>
     </ScrollControls>
 }
@@ -405,6 +510,7 @@ function About() {
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
+            <FireflyCloud count={200} />
         </Scroll>
     </ScrollControls>
 }
@@ -485,26 +591,60 @@ function buttonClickAnimation(event) {
     }, 300);
 }
 
+function Background() {
+    //const gradient = chroma.scale(['#0000ff', '#ff0000']).mode('lab').colors(12);
+    const gradient = chroma.scale(['#fff', '#0a0536']).mode('lab').colors(12);
+
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((item, i) => {
+        const pos = {
+            x: 0,
+            y: -8 + i * 6,
+            z: -5 - i * 10
+        }
+
+        return <>
+            <mesh rotation={[0, 0, 0]} position={[pos.x, pos.y, pos.z]} receiveShadow castShadow>
+                <planeGeometry args={[500, 10]} />
+                <meshStandardMaterial
+                    map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
+                        texture.wrapS = THREE.RepeatWrapping;
+                        texture.wrapT = THREE.RepeatWrapping;
+                        texture.repeat.set(50, 1); // Adjust the repeat values as needed
+                    })}
+                    color={gradient[i]}
+                />
+            </mesh>
+            <pointLight
+                color={gradient[i]}
+                position={[pos.x, pos.y - 5, pos.z + 1]}
+                intensity={0.2 / (i + 1)}
+                distance={1000}
+                decay={0.1}
+                castShadow
+                shadow-mapSize-width={2048}
+                shadow-mapSize-height={2048}
+                shadow-bias={-0.0005}
+            />
+        </>
+    })
+}
+
 function App() {
+    const [lightDark, setLightDark] = useState(0);
+    const lightDarkScale = chroma.scale(['#fff', '#0a0536']);
+    const lightDarkColor = lightDarkScale(lightDark).hex();
+
     return (
         <BrowserRouter>
             <Nav />
             <motion.div className="App" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
                 <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
+                    <color attach="background" args={['#000000']} />
                     <SoftShadows size={33} samples={100} />
-                    <mesh rotation={[0, 0, 0]} position={[0, 0, -5]} receiveShadow>
-                        <planeGeometry args={[500, 500]} />
-                        <meshStandardMaterial
-                            map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
-                                texture.wrapS = THREE.RepeatWrapping;
-                                texture.wrapT = THREE.RepeatWrapping;
-                                texture.repeat.set(50, 50); // Adjust the repeat values as needed
-                            })}
-                        />
-                    </mesh>
+                    <Background />
                     <AnimatePresence mode="wait">
                         <Routes>
-                            <Route path='/' element={<Home />} />
+                            <Route path='/' element={<Home lightDark={lightDark} setLightDark={setLightDark} />} />
                             <Route path='/about' element={<About />} />
                             <Route path='/shop' element={<Shop />} />
                             <Route path='/faq' element={<FAQ />} />

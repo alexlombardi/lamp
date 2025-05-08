@@ -281,22 +281,67 @@
 .aboutContainer {
     position: relative;
     width: 100vw;
-    height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
 }
 
 .aboutBox {
     width: 98vw;
-    height: 80vh;
+    height: calc(100vh - 270px);
+    margin: 135px 0;
     display: flex;
     justify-content: center;
     align-items: center;
     font-size: 2.1vh;
     font-weight: 100;
     color: white;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.1), rgb(0, 0, 0));
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    border: 1px solid white;
+    border: 1px solid rgb(54, 54, 54);
     border-radius: 30px;
+    animation: aboutBoxShrink cubic-bezier(0.075, 0.82, 0.165, 1) 1s forwards;
+    transition: all 0.2s;
+}
+
+.aboutBox:hover {
+    transform: scale(1.01);
+}
+
+@keyframes aboutBoxShrink {
+    0% {
+        height: calc(100vh - 270px);
+    }
+    50% {
+        height: calc(100vh - 270px);
+    }
+    100% {
+        height: 200px;
+    }
+}
+
+.aboutParagraph {
+    max-width: 800px;
+    margin-bottom: 90px;
+    text-align: center;
+    line-height: 3vh;
+    font-size: 22px;
+    font-weight: 100;
+    text-align: justify;
+}
+
+.aboutSpan {
+    font-weight: bold;
+    font-size: 30px;
+    color: #daba77;
+    text-shadow: 0 0 10px rgba(218, 187, 119, 0.89);
+}
+
+.aboutImage {
+    background-position: center;
+    background-size: cover;
+    width: 140px;
+    height: 140px;
+    border-radius: 30px;
+    filter: grayscale(100%);
+    margin-right: 35px;
 }
