@@ -598,7 +598,7 @@ function Background() {
     return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((item, i) => {
         const pos = {
             x: 0,
-            y: -8 + i * 6,
+            y: -9 + i * 6.5,
             z: -5 - i * 10
         }
 

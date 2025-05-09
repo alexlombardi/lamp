@@ -58,6 +58,7 @@
     color: white;
     text-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
     user-select: none;
+    -webkit-user-select: none;
     z-index: 10;
     pointer-events: none;
 }
@@ -96,6 +97,7 @@
     margin-top: calc(100vh / 4.5);
     display: flex;
     user-select: none;
+    -webkit-user-select: none;
 }
 
 .horizontalMotionDiv {
@@ -215,6 +217,7 @@
     cursor: pointer;
     user-select: none;
     overflow: hidden;
+    -webkit-mask-image: -webkit-radial-gradient(white, black);
     animation: fall 0.5s forwards;
     min-width: 60px;
     height: 60px;
