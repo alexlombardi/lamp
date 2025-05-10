@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect, useMemo } from 'react';
+import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import './App.css';
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
-import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View, Points, PointMaterial } from '@react-three/drei';
+import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View, Points, PointMaterial, Loader } from '@react-three/drei';
 import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -74,14 +74,15 @@ function RotatingCamera() {
     });
 }
 
-function FireflyCloud({ count = 250 }) {
+function FireflyCloud({ count = 150 }) {
     const pointsRef = useRef();
+    const scroll = useScroll();
 
     const positions = useMemo(() => {
         const posArray = new Float32Array(count * 3);
         for (let i = 0; i < count; i++) {
             posArray[i * 3] = (Math.random() - 0.5) * 20;
-            posArray[i * 3 + 1] = (Math.random() - 0.5) * 20;
+            posArray[i * 3 + 1] = (Math.random() - 0.5) * 100;
             posArray[i * 3 + 2] = (Math.random() - 0.5) * 20;
         }
         return posArray;
@@ -112,20 +113,25 @@ function FireflyCloud({ count = 250 }) {
         const opacityAttr = pointsRef.current.geometry.attributes.opacity.array;
         const time = state.clock.elapsedTime;
 
+        const scrollHeight = -scroll.offset * 140;
+        const yMin = scrollHeight - 10;
+        const yMax = scrollHeight + 10;
+
         for (let i = 0; i < count; i++) {
             pos[i * 3] += velocities[i][0] + Math.sin(time * 0.3 + i) * 0.003;
             pos[i * 3 + 1] += velocities[i][1] + Math.cos(time * 0.2 + i * 0.5) * 0.003;
             pos[i * 3 + 2] += velocities[i][2] + Math.sin(time * 0.4 + i * 0.3) * 0.003;
 
-            for (let j = 0; j < 3; j++) {
-                if (pos[i * 3 + j] > 10) {
-                    pos[i * 3 + j] = 10;
-                    velocities[i][j] *= -1;
-                }
-                if (pos[i * 3 + j] < -10) {
-                    pos[i * 3 + j] = -10;
-                    velocities[i][j] *= -1;
-                }
+            if (pos[i * 3] > 10) { pos[i * 3] = 10; velocities[i][0] *= -1; }
+            if (pos[i * 3] < -10) { pos[i * 3] = -10; velocities[i][0] *= -1; }
+            if (pos[i * 3 + 2] > 10) { pos[i * 3 + 2] = 10; velocities[i][2] *= -1; }
+            if (pos[i * 3 + 2] < -10) { pos[i * 3 + 2] = -10; velocities[i][2] *= -1; }
+
+            // Reposition fireflies randomly within visible bounds when out of vertical range
+            if (pos[i * 3 + 1] < yMin || pos[i * 3 + 1] > yMax) {
+                pos[i * 3] = (Math.random() - 0.5) * 20;
+                pos[i * 3 + 1] = Math.random() * (yMax - yMin) + yMin;
+                pos[i * 3 + 2] = (Math.random() - 0.5) * 20;
             }
 
             opacityAttr[i] = 0.5 + 0.5 * Math.sin(time * 5 + i);
@@ -223,7 +229,7 @@ function DemoLamp({ lightDark, setLightDark }) {
     </>;
 }
 
-function HomeHtml({lightDark, setLightDark}) {
+function HomeHtml({ lightDark, setLightDark }) {
     const scroll = useScroll();
     const [scrollPosition, setScrollPosition] = useState(0); // 1 = 1 viewport height
     const viewportHeight = window.innerHeight;
@@ -266,7 +272,7 @@ function HomeHtml({lightDark, setLightDark}) {
     ];
 
     return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
-        <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }}>
+        <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }} poster='/vid-thumbnail-1.png'>
             <source src="./vid-2.mp4" type="video/mp4" />
         </video>
         <div className='mainTitle' style={{ transform: `scale(${titleScale})`, top: titleTop, color: lightDarkColor }}>
@@ -491,7 +497,7 @@ function buttonUnhover(event) {
     circle.style.display = 'none'
 }
 
-function Home({lightDark, setLightDark}) {
+function Home({ lightDark, setLightDark }) {
     return <ScrollControls pages={maxScrollPages} damping={0.2}>
         <Scroll html style={{ width: '100%', height: '100%' }}>
             <HomeHtml lightDark={lightDark} setLightDark={setLightDark} />
@@ -499,6 +505,7 @@ function Home({lightDark, setLightDark}) {
         <Scroll>
             {/*outer 3D*/}
             <DemoLamp lightDark={lightDark} setLightDark={setLightDark} />
+            <FireflyCloud />
         </Scroll>
     </ScrollControls>
 }
@@ -510,7 +517,7 @@ function About() {
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
-            <FireflyCloud count={200} />
+            <FireflyCloud />
         </Scroll>
     </ScrollControls>
 }
@@ -522,6 +529,7 @@ function Shop() {
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
+            <FireflyCloud />
         </Scroll>
     </ScrollControls>
 }
@@ -533,6 +541,7 @@ function FAQ() {
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
+            <FireflyCloud />
         </Scroll>
     </ScrollControls>
 }
@@ -544,6 +553,7 @@ function Contact() {
         </Scroll>
         <Scroll>
             {/*outer 3D*/}
+            <FireflyCloud />
         </Scroll>
     </ScrollControls>
 }
@@ -638,21 +648,24 @@ function App() {
         <BrowserRouter>
             <Nav />
             <motion.div className="App" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
-                <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
-                    <color attach="background" args={['#000000']} />
-                    <SoftShadows size={33} samples={100} />
-                    <Background />
-                    <AnimatePresence mode="wait">
-                        <Routes>
-                            <Route path='/' element={<Home lightDark={lightDark} setLightDark={setLightDark} />} />
-                            <Route path='/about' element={<About />} />
-                            <Route path='/shop' element={<Shop />} />
-                            <Route path='/faq' element={<FAQ />} />
-                            <Route path='/contact' element={<Contact />} />
-                            <Route path='*' element={<Home />} />
-                        </Routes>
-                    </AnimatePresence>
-                </Canvas>
+                <Suspense fallback={null}>
+                    <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
+                        <color attach="background" args={['#000000']} />
+                        <SoftShadows size={33} samples={100} />
+                        <Background />
+                        <AnimatePresence mode="wait">
+                            <Routes>
+                                <Route path='/' element={<Home lightDark={lightDark} setLightDark={setLightDark} />} />
+                                <Route path='/about' element={<About />} />
+                                <Route path='/shop' element={<Shop />} />
+                                <Route path='/faq' element={<FAQ />} />
+                                <Route path='/contact' element={<Contact />} />
+                                <Route path='*' element={<Home />} />
+                            </Routes>
+                        </AnimatePresence>
+                    </Canvas>
+                </Suspense>
+                <Loader />
             </motion.div>
         </BrowserRouter>
     )
