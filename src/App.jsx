@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useMemo, Suspense } from 'react';
 import './App.css';
 import * as THREE from 'three';
 import { Canvas, useFrame, extend, useThree } from '@react-three/fiber';
-import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View, Points, PointMaterial, Loader } from '@react-three/drei';
+import { Html, Environment, OrbitControls, MeshDiscardMaterial, useScroll, ScrollControls, Scroll, SoftShadows, RoundedBox, useGLTF, View, Points, PointMaterial, Loader, Stats } from '@react-three/drei';
 import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -213,6 +213,7 @@ function DemoLamp({ lightDark, setLightDark }) {
     useFrame(() => {
         setScrollPosition(scroll.offset * maxScrollPages);
         scene.position.y = -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82;
+        scene.position.z = Math.max(scrollPosition - 4.2, 0) * -20;
         //setLightDark(Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) / 1.5);
         //scene.rotation.x = Math.max(scrollPosition - 2.70, 0) * 2;
     });
@@ -221,11 +222,11 @@ function DemoLamp({ lightDark, setLightDark }) {
         <primitive object={scene} />
         <pointLight
             color="#fff2d5"
-            position={[0, -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82, 0]}
+            position={[0, -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82, Math.max(scrollPosition - 4.2, 0) * -20]}
             intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 50}
             castShadow
         />
-        <directionalLight position={[0, 0, 2]} rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 15} />
+        <directionalLight position={[0, -40 - Math.max(scrollPosition - 2.7, 0) * 13.82, 2]} rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 2} />
     </>;
 }
 
@@ -336,12 +337,21 @@ function AboutHtml() {
         </div>
         <div className='aboutContainer'>
             <div className='aboutParagraph'>
-                Based in Westchester, NY and founded by two brothers, <span className='aboutSpan'>COMPANY</span> is a small, family-owned company focused on creating intuitive, functional products that fit seamlessly into your life. We believe that technology should be simple, beautiful, and easy to use. Our products are all assembled by hand, and we prioritize quality and craftsmanship in everything we do.
+                Based in Westchester, NY and founded by two brothers, <span className='aboutSpan'>COMPANY</span> is a small, 
+                family-owned company focused on creating intuitive, functional products that fit seamlessly into your life. 
+                We believe that technology should be simple, beautiful, and easy to use. Our products are all assembled by hand, 
+                and we prioritize quality and craftsmanship in everything we do.
             </div>
         </div>
         <div className='aboutContainer'>
             <div className='aboutParagraph'>
-                <span className='aboutSpan'>LAMP</span> is our first product. We believe there is nothing else like it available today - a standalone smart home lamp that just works, right out of the box, and feels like the future. We hope you like it, too.
+                <span className='aboutSpan'>LAMP</span> is our first product. It was conceived as a standalone smart home lamp that just works, 
+                right out of the box, and feels like the future. As impressive as the innovation in the smart home space has been, 
+                the ideal form of the smart home - a home that seamlessly reacts to your needs and adapts to suit the moment - has yet to be realized. 
+                Though incredible things can be achieved with complex networks of devices, sensors, and automations, we believe that a 
+                thoughtfully-designed, self-contained device can do more, with much less fiddling. With its built-in sensor array, 
+                the <span className='aboutSpan'>LAMP</span> ambiently adjusts its brightness to meet you as you enter the room, 
+                and smoothly dims as you exit.
             </div>
         </div>
         {/*<div className='aboutContainer'>
@@ -603,24 +613,25 @@ function buttonClickAnimation(event) {
 
 function Background() {
     //const gradient = chroma.scale(['#0000ff', '#ff0000']).mode('lab').colors(12);
-    const gradient = chroma.scale(['#fff', '#0a0536']).mode('lab').colors(12);
+    const gradient = chroma.scale(['#06714f', '#0a0536']).mode('lab').colors(24);
+    const texture = new THREE.TextureLoader().load('/texture-1.png', (texture) => {
+        texture.wrapS = THREE.RepeatWrapping;
+        texture.wrapT = THREE.RepeatWrapping;
+        texture.repeat.set(50, 1); // Adjust the repeat values as needed
+    })
 
-    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((item, i) => {
+    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((item, i) => {
         const pos = {
             x: 0,
-            y: -9 + i * 6.5,
-            z: -5 - i * 10
+            y: -9 + i * 3,
+            z: -5 - i * 5
         }
 
         return <>
             <mesh rotation={[0, 0, 0]} position={[pos.x, pos.y, pos.z]} receiveShadow castShadow>
                 <planeGeometry args={[500, 10]} />
                 <meshStandardMaterial
-                    map={new THREE.TextureLoader().load('/texture-1.png', (texture) => {
-                        texture.wrapS = THREE.RepeatWrapping;
-                        texture.wrapT = THREE.RepeatWrapping;
-                        texture.repeat.set(50, 1); // Adjust the repeat values as needed
-                    })}
+                    map={texture}
                     color={gradient[i]}
                 />
             </mesh>
@@ -630,10 +641,6 @@ function Background() {
                 intensity={0.2 / (i + 1)}
                 distance={1000}
                 decay={0.1}
-                castShadow
-                shadow-mapSize-width={2048}
-                shadow-mapSize-height={2048}
-                shadow-bias={-0.0005}
             />
         </>
     })
@@ -651,7 +658,7 @@ function App() {
                 <Suspense fallback={null}>
                     <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
                         <color attach="background" args={['#000000']} />
-                        <SoftShadows size={33} samples={100} />
+                        <Stats />
                         <Background />
                         <AnimatePresence mode="wait">
                             <Routes>
