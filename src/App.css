@@ -11,7 +11,8 @@
     font-family: 'National Park', sans-serif;
 }
 
-.App, .transitionGroup {
+.App,
+.transitionGroup {
     width: 100%;
     height: 100%;
 }
@@ -127,7 +128,7 @@
     box-shadow: 0 0 50px rgba(255, 242, 213, 0.5);
 }
 
-.horizontalMotionDivInner:hover > .horizontalMotionDivImage {
+.horizontalMotionDivInner:hover>.horizontalMotionDivImage {
     margin-top: 0;
 }
 
@@ -160,7 +161,7 @@
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 }
 
-.horizontalMotionDivTextContainer > h1 {
+.horizontalMotionDivTextContainer>h1 {
     margin: 0;
     font-weight: bold;
     line-height: 7vh;
@@ -174,11 +175,19 @@
 }
 
 .moveDownTextContainer {
+    position: relative;
     width: 100%;
     display: flex;
     justify-content: center;
     pointer-events: none;
     user-select: none;
+}
+
+.moveDownText {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
 }
 
 .textContainer {
@@ -195,7 +204,7 @@
     font-weight: 100;
 }
 
-.textContainer > h1 {
+.textContainer>h1 {
     margin: 0;
     font-weight: bold;
     line-height: 7vh;
@@ -230,7 +239,7 @@
     transform: scale(1.2);
 }
 
-.button:not(:hover) > .buttonHoverCircle {
+.button:not(:hover)>.buttonHoverCircle {
     display: none;
 }
 
@@ -254,6 +263,7 @@
     0% {
         transform: translate(-50%, -50%) scale(0);
     }
+
     100% {
         transform: translate(-50%, -50%) scale(1);
     }
@@ -267,9 +277,11 @@
     0% {
         transform: scale(1.2);
     }
+
     50% {
         transform: scale(1.8);
     }
+
     100% {
         transform: scale(1.2);
     }
@@ -298,7 +310,7 @@
     font-size: 2.1vh;
     font-weight: 100;
     color: white;
-    background-color: white;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), #daba77, white);
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     animation: aboutBoxShrink cubic-bezier(0.075, 0.82, 0.165, 1) 1s forwards;
     transition: all 0.2s;
@@ -312,18 +324,23 @@
 @keyframes aboutBoxShrink {
     0% {
         height: calc(100vh - 270px);
+        background-size: 250%;
     }
+
     50% {
         height: calc(100vh - 270px);
+        background-size: 200%;
     }
+
     100% {
         height: 200px;
+        background-size: 100%;
     }
 }
 
 .aboutParagraph {
     max-width: 800px;
-    margin-bottom: 90px;
+    margin-bottom: 70px;
     text-align: center;
     line-height: 3vh;
     font-size: 22px;
@@ -347,4 +364,18 @@
     border-radius: 30px;
     filter: grayscale(100%);
     margin-right: 35px;
+}
+
+.illuminatingInfoDiv {
+    position: absolute;
+    font-size: 20px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 20px;
+    background-image: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0), rgb(255, 255, 255));
+    background-size: 200%;
+    width: 300px;
+    height: 200px;
+    
 }

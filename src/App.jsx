@@ -7,8 +7,18 @@ import { easing, geometry } from 'maath';
 import { BrowserRouter, Routes, Route, Link } from 'react-router';
 import { AnimatePresence, motion } from 'framer-motion';
 import chroma from 'chroma-js';
+import { CheckoutProvider, PaymentElement } from '@stripe/react-stripe-js';
+import { loadStripe } from '@stripe/stripe-js';
 
 extend(geometry)
+
+const stripePromise = loadStripe('pk_test_51RQF0jPPGjsvAt6RUwq9dTrliviBhi6DbcfQrWwc5MFcZqH8BM18JJqqExE58ZFop1M7rbghdVEGI2hq3guciFhU00YSqfd3EN');
+
+const fetchClientSecret = () => {
+  return fetch('/create-checkout-session', {method: 'POST'})
+    .then((response) => response.json())
+    .then((json) => json.checkoutSessionClientSecret)
+};
 
 const maxScrollPages = 10;
 
@@ -272,6 +282,33 @@ function HomeHtml({ lightDark, setLightDark }) {
         },
     ];
 
+    const horizontalMotionDivs2 = [
+        {
+            title: 'Smart',
+            text: 'Brightens as you get closer to it, dims as you walk away',
+            more: 'Using a combination of sensors, the lamp can detect your presence and adjust its brightness accordingly. Enjoy a well-lit space without having to fiddle with switches or apps',
+            image: '/example-1.jpg'
+        },
+        {
+            title: 'Simple',
+            text: 'Works right out of the box - no complicated setup, apps, or fiddling with automations',
+            more: 'Just plug it in and it will automatically adjust to your space. No need to download an app or set up complicated automations',
+            image: '/example-2.jpg'
+        },
+        {
+            title: 'Flexible',
+            text: 'Detach the cable to switch to battery mode, or mount the lamp with included hardware and optional accessories',
+            more: 'Magnetic cable allows for easy detachment and reattachment, while the included mounting hardware lets you place the lamp wherever you want',
+            image: '/example-3.jpg'
+        },
+        {
+            title: 'Beautiful',
+            text: 'A modern, minimal design that fits in any space',
+            more: 'Available in a variety of colors and finishes, including black, white, and gold',
+            image: '/example-4.jpg'
+        },
+    ];
+
     return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
         <video className='video' autoPlay loop muted playsInline style={{ transform: `scale(${1 - scrollPosition})`, opacity: 1 - scrollPosition * 2, borderRadius: Math.max(0, scrollPosition * 2) * 50 + 'px' }} poster='/vid-thumbnail-1.png'>
             <source src="./vid-2.mp4" type="video/mp4" />
@@ -306,12 +343,17 @@ function HomeHtml({ lightDark, setLightDark }) {
                 </div>
             </div>
         </div>
-        {renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition)}
+        {renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition, 1)}
         <div className='moveDownTextContainer'>
-            <div className='moveDownText' style={{ marginTop: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.5, 0) * 2 }}>
+            <div className='moveDownText' style={{ top: Math.max(scrollPosition - 1.82, 0) * viewportHeight * 0.9 + 'px', opacity: 1 - Math.max(scrollPosition - 2.5, 0) * 2 }}>
                 <h1>The promise of the smart home, fulfilled</h1>
             </div>
         </div>
+        {/*<div className='illuminatingInfoDiv' style={{backgroundPosition: '0% ' + (scrollPosition * 100) + '%'}}>
+            Test
+        </div>*/}
+        <div style={{height: '200vh'}}></div>
+        {renderHorizontalMotionDivs(horizontalMotionDivs2, scrollPosition, -1)}
 
         {/*debug*/}
         <div style={{ position: 'fixed', top: 50 + (scrollPosition * viewportHeight) * 0.9 + 'px', right: '50px', color: 'white', fontSize: '20px', }}>
@@ -377,6 +419,12 @@ function ShopHtml() {
             <div className='aboutBox'>
                 <h1>Shop</h1>
             </div>
+            {/*<CheckoutProvider stripe={stripePromise} options={{fetchClientSecret}}>
+                <form>
+                    <PaymentElement />
+                    <button>Submit</button>
+                </form>
+            </CheckoutProvider>*/}
         </div>
     </motion.div>
 }
@@ -417,7 +465,7 @@ function ContactHtml() {
     </motion.div>
 }
 
-function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
+function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition, direction) {
     const [velocity, setVelocity] = useState(0);
     const [draggedValue, setDraggedValue] = useState(0);
     const animationFrame = useRef(null);
@@ -473,7 +521,7 @@ function renderHorizontalMotionDivs(horizontalMotionDivs, scrollPosition) {
             }
 
             var divW = 150 / horizontalMotionDivs.length;
-            var x = modulo((scrollPosition * 100 + divW * i + 200 + (draggedValue / 15)), 150) - 50;
+            var x = modulo((scrollPosition * 100 * direction + divW * i + 200 + (draggedValue / 15)), 150) - 50;
 
             return <div className='horizontalMotionDiv' key={i} style={{ transform: `translateX(${x}vw)`, width: `${divW}vw` }}>
                 <div className='horizontalMotionDivInner'>
@@ -606,9 +654,9 @@ function Nav() {
 function buttonClickAnimation(event) {
     const element = event.currentTarget;
     element.classList.add('buttonClickAnimation');
-    setTimeout(() => {
+    element.addEventListener('animationend', () => {
         element.classList.remove('buttonClickAnimation');
-    }, 300);
+    })
 }
 
 function Background() {

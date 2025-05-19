@@ -13,6 +13,8 @@
     "@isaac_ua/drei-html-fix": "^0.2.1",
     "@react-three/drei": "^10.0.4",
     "@react-three/fiber": "^9.1.0",
+    "@stripe/react-stripe-js": "^3.7.0",
+    "@stripe/stripe-js": "^7.3.0",
     "chroma-js": "^3.1.2",
     "framer-motion": "^12.9.4",
     "maath": "^0.10.8",
