@@ -379,7 +379,7 @@ function AboutHtml() {
         </div>
         <div className='aboutContainer'>
             <div className='aboutParagraph'>
-                Based in Westchester, NY and founded by two brothers, <span className='aboutSpan'>COMPANY</span> is a small, 
+                Based in Westchester, NY and founded by two brothers, <span className='aboutSpan'>LATHE</span> is a small, 
                 family-owned company focused on creating intuitive, functional products that fit seamlessly into your life. 
                 We believe that technology should be simple, beautiful, and easy to use. Our products are all assembled by hand, 
                 and we prioritize quality and craftsmanship in everything we do.
