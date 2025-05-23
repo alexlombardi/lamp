@@ -233,10 +233,24 @@ function DemoLamp({ lightDark, setLightDark }) {
         <pointLight
             color="#fff2d5"
             position={[0, -40 - Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 13.82, Math.max(scrollPosition - 4.2, 0) * -20]}
-            intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 50}
+            intensity={40 + Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 500}
             castShadow
         />
-        <directionalLight position={[0, -40 - Math.max(scrollPosition - 2.7, 0) * 13.82, 2]} rotation={[0, 0, Math.PI]} color="#fff2d5" intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 2} />
+        <directionalLight 
+            castShadow 
+            position={[0, -40 - Math.max(scrollPosition - 2.7, 0) * 13.82, 2]} 
+            rotation={[0, 0, Math.PI]} 
+            color="#fff2d5" 
+            intensity={Math.min(Math.max(scrollPosition - 2.7, 0), 1.5) * 2} 
+            shadow-mapSize-width={1024}
+            shadow-mapSize-height={1024}
+            shadow-camera-near={1}
+            shadow-camera-far={10}
+            shadow-camera-left={-5}
+            shadow-camera-right={5}
+            shadow-camera-top={5}
+            shadow-camera-bottom={-5}
+        />
     </>;
 }
 
@@ -352,7 +366,7 @@ function HomeHtml({ lightDark, setLightDark }) {
         {/*<div className='illuminatingInfoDiv' style={{backgroundPosition: '0% ' + (scrollPosition * 100) + '%'}}>
             Test
         </div>*/}
-        <div style={{height: '200vh'}}></div>
+        <div style={{height: '250vh'}}></div>
         {renderHorizontalMotionDivs(horizontalMotionDivs2, scrollPosition, -1)}
 
         {/*debug*/}
@@ -660,38 +674,12 @@ function buttonClickAnimation(event) {
 }
 
 function Background() {
-    //const gradient = chroma.scale(['#0000ff', '#ff0000']).mode('lab').colors(12);
-    const gradient = chroma.scale(['#06714f', '#0a0536']).mode('lab').colors(24);
-    const texture = new THREE.TextureLoader().load('/texture-1.png', (texture) => {
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set(50, 1); // Adjust the repeat values as needed
-    })
+    const { scene } = useGLTF('/placeholder-2.glb');
+    scene.rotation.x = -Math.PI / 2;
+    scene.scale.set(2, 2, 2);
+    scene.position.set(0, -1.5, 0);
 
-    return [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0].map((item, i) => {
-        const pos = {
-            x: 0,
-            y: -9 + i * 3,
-            z: -5 - i * 5
-        }
-
-        return <>
-            <mesh rotation={[0, 0, 0]} position={[pos.x, pos.y, pos.z]} receiveShadow castShadow>
-                <planeGeometry args={[500, 10]} />
-                <meshStandardMaterial
-                    map={texture}
-                    color={gradient[i]}
-                />
-            </mesh>
-            <pointLight
-                color={gradient[i]}
-                position={[pos.x, pos.y - 5, pos.z + 1]}
-                intensity={0.2 / (i + 1)}
-                distance={1000}
-                decay={0.1}
-            />
-        </>
-    })
+    <primitive object={scene} castShadow receiveShadow />
 }
 
 function App() {

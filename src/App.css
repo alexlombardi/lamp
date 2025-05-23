@@ -324,12 +324,12 @@
 @keyframes aboutBoxShrink {
     0% {
         height: calc(100vh - 270px);
-        background-size: 250%;
+        background-size: 400%;
     }
 
     50% {
         height: calc(100vh - 270px);
-        background-size: 200%;
+        background-size: 150%;
     }
 
     100% {
