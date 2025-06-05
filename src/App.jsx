@@ -675,11 +675,18 @@ function buttonClickAnimation(event) {
 
 function Background() {
     const { scene } = useGLTF('/placeholder-2.glb');
-    scene.rotation.x = -Math.PI / 2;
-    scene.scale.set(2, 2, 2);
-    scene.position.set(0, -1.5, 0);
+    scene.rotation.y = degToRad(0);
+    scene.scale.set(5, 5, 5);
+    scene.position.set(0, -20, 0);
 
-    <primitive object={scene} castShadow receiveShadow />
+    scene.traverse((child) => {
+        console.log(child);
+        if (child.isMesh) {
+            child.material = new THREE.MeshStandardMaterial({ color: 'white', roughness: 0.5, metalness: 0.2 });
+        }
+    });
+
+    return <primitive object={scene} castShadow receiveShadow />
 }
 
 function App() {
