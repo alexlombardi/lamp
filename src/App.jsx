@@ -459,18 +459,34 @@ function FAQHtml() {
             </div>
         </div>
         <div className='aboutContainer'>
-            <div className='aboutParagraph' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.45) * 1000}px)`}}>
+            <div className='aboutParagraph' id='p1' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.45) * 1000}px)`}}>
                 <h1 className='aboutHeading'>Q: Does the lamp need to be plugged in at all times?</h1>
                 <b>A:</b> The <span className='aboutSpan'>LAMP</span> can be used in two modes: plugged in or battery-powered.
                 When plugged in, it will always be ready to use and will charge the internal battery. 
                 When unplugged, it will run on battery power for up to 8 hours, depending on usage. 
                 The lamp can be easily switched between modes by detaching the magnetic cable.
+                <div className="boundingTop">
+                    {'pixels: ' + (document.querySelector('#p1')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) || 'Bounding top not available'}<br />
+                    {'scrollPosition: ' + (document.querySelector('#p1')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) / window.innerHeight * 0.9 || 'Bounding top not available'}
+                </div>
             </div>
         </div>
         <div className='aboutContainer'>
-            <div className='aboutParagraph' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.85) * 1000}px)`}}>
+            <div className='aboutParagraph' id='p2' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.85) * 1000}px)`}}>
                 <h1 className='aboutHeading'>Q: Is the lamp available in other colors?</h1>
                 <b>A:</b> I don't know, maybe!
+                <div className="boundingTop">
+                    {document.querySelector('#p2')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9 || 'Bounding top not available'}
+                </div>
+            </div>
+        </div>
+        <div className='aboutContainer'>
+            <div className='aboutParagraph' id='p3' style={{transform: `translateX(${Math.max(0, scrollPosition - 1.1) * 1000}px)`}}>
+                <h1 className='aboutHeading'>Q: Does the lamp support Home Assistant and other smart home platforms?</h1>
+                <b>A:</b> Yes, the output of the sensors can be integrated with Home Assistant and other smart home platforms.
+                <div className="boundingTop">
+                    {document.querySelector('#p3')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9 || 'Bounding top not available'}
+                </div>
             </div>
         </div>
     </motion.div>
