@@ -9,6 +9,8 @@ import { AnimatePresence, motion } from 'framer-motion';
 import chroma from 'chroma-js';
 import { CheckoutProvider, PaymentElement } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
+import { createNoise2D } from 'simplex-noise';
+import { EffectComposer, LensFlare, DepthOfField } from '@react-three/postprocessing';
 
 extend(geometry)
 
@@ -67,6 +69,28 @@ function FloatingLight() {
         //<pointLight ref={lightRef} color="#ffffff" position={[0, 0, 0.1]} castShadow intensity={1.5} distance={1000} decay={0.1} />
         <directionalLight ref={lightRef} color="#ffffff" position={[0, 1, 0.5]} castShadow intensity={1.5} />
     )
+}
+
+function CameraShake({ intensity = 0.1, frequency = 0.25 }) {
+    const { camera } = useThree()
+    const noise2D = useRef(createNoise2D())
+    const time = useRef(0)
+    const basePosition = useRef(camera.position.clone())
+    const baseRotation = useRef(camera.rotation.clone())
+
+    useFrame((_, delta) => {
+        time.current += delta * frequency
+
+        const x = noise2D.current(time.current, 0)
+        const y = noise2D.current(0, time.current)
+        const z = noise2D.current(time.current, time.current)
+
+        camera.position.x = basePosition.current.x + x * intensity
+        camera.position.y = basePosition.current.y + y * intensity
+        camera.rotation.z = baseRotation.current.z + z * intensity * 0.05
+    })
+
+    return null
 }
 
 function RotatingCamera() {
@@ -353,7 +377,7 @@ function HomeHtml({ lightDark, setLightDark }) {
                 </View>*/}
                 <div className='textContainer'>
                     <h1>The future is looking bright.</h1>
-                    Redefine your space with smooth, dynamic lighting that reacts to your movement through your home
+                    Finally, you can have smart lighting that dynamically brightens and dims as you move through your home.
                 </div>
             </div>
         </div>
@@ -455,11 +479,16 @@ function FAQHtml() {
     return <motion.div className='pageTransitionAnimationContainer' initial={pageTransitionAnimations.initial} animate={pageTransitionAnimations.animate} exit={pageTransitionAnimations.exit} transition={pageTransitionAnimations.transition}>
         <div className='aboutContainer'>
             <div className='aboutBox'>
-                <h1>FAQ</h1>
+                <h1 style={{position: 'absolute'}}>FAQ</h1>
+                {[0, 1, 2, 3, 4, 5].map((i) => {
+                    return <div className='aboutBoxStripe' style= {{height: (5 - i) * (18 / (1 + (i / 10))) + '%', backgroundSize: 100 + (i * 20) + '%'}}>
+
+                    </div>
+                })}
             </div>
         </div>
         <div className='aboutContainer'>
-            <div className='aboutParagraph' id='p1' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.45) * 1000}px)`}}>
+            <div className='aboutParagraph' id='p1' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.416) * 1000}px)`}}>
                 <h1 className='aboutHeading'>Q: Does the lamp need to be plugged in at all times?</h1>
                 <b>A:</b> The <span className='aboutSpan'>LAMP</span> can be used in two modes: plugged in or battery-powered.
                 When plugged in, it will always be ready to use and will charge the internal battery. 
@@ -472,20 +501,22 @@ function FAQHtml() {
             </div>
         </div>
         <div className='aboutContainer'>
-            <div className='aboutParagraph' id='p2' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.85) * 1000}px)`}}>
+            <div className='aboutParagraph' id='p2' style={{transform: `translateX(${Math.max(0, scrollPosition - 0.926) * 1000}px)`}}>
                 <h1 className='aboutHeading'>Q: Is the lamp available in other colors?</h1>
                 <b>A:</b> I don't know, maybe!
                 <div className="boundingTop">
-                    {document.querySelector('#p2')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9 || 'Bounding top not available'}
+                    {'pixels: ' + (document.querySelector('#p2')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) || 'Bounding top not available'}<br />
+                    {'scrollPosition: ' + (document.querySelector('#p2')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) / window.innerHeight * 0.9 || 'Bounding top not available'}
                 </div>
             </div>
         </div>
         <div className='aboutContainer'>
-            <div className='aboutParagraph' id='p3' style={{transform: `translateX(${Math.max(0, scrollPosition - 1.1) * 1000}px)`}}>
+            <div className='aboutParagraph' id='p3' style={{transform: `translateX(${Math.max(0, scrollPosition - 1.287) * 1000}px)`}}>
                 <h1 className='aboutHeading'>Q: Does the lamp support Home Assistant and other smart home platforms?</h1>
                 <b>A:</b> Yes, the output of the sensors can be integrated with Home Assistant and other smart home platforms.
                 <div className="boundingTop">
-                    {document.querySelector('#p3')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9 || 'Bounding top not available'}
+                    {'pixels: ' + (document.querySelector('#p3')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) || 'Bounding top not available'}<br />
+                    {'scrollPosition: ' + (document.querySelector('#p3')?.getBoundingClientRect().top + scrollPosition * window.innerHeight * 0.9) / window.innerHeight * 0.9 || 'Bounding top not available'}
                 </div>
             </div>
         </div>
@@ -711,7 +742,6 @@ function Background() {
     scene.position.set(0, -20, 0);
 
     scene.traverse((child) => {
-        console.log(child);
         if (child.isMesh) {
             child.material = new THREE.MeshStandardMaterial({ color: 'white', roughness: 0.5, metalness: 0.2 });
         }
@@ -731,6 +761,7 @@ function App() {
             <motion.div className="App" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5 }}>
                 <Suspense fallback={null}>
                     <Canvas className='mainCanvas' shadows camera={{ position: [0, 0, 10], fov: 75 }}>
+                        <CameraShake />
                         <color attach="background" args={['#000000']} />
                         <Stats />
                         <Background />
@@ -744,6 +775,13 @@ function App() {
                                 <Route path='*' element={<Home />} />
                             </Routes>
                         </AnimatePresence>
+                        <EffectComposer>
+                            <DepthOfField
+                                focusDistance={0} // where to focus
+                                focalLength={0.02} // focal length
+                                bokehScale={2} // bokeh size
+                            />    
+                        </EffectComposer>
                     </Canvas>
                 </Suspense>
                 <Loader />

@@ -315,16 +315,18 @@ h1 {
 }
 
 .aboutBox {
+    position: relative;
     width: 100vw;
     height: calc(100vh - 270px);
     display: flex;
     margin: 135px 0;
     justify-content: center;
     align-items: center;
+    align-items: space-between;
     font-size: 2.1vh;
     font-weight: 100;
     color: white;
-    background-image: radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), #daba77, white);
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), #dabb778a, rgba(255, 255, 255, 0.492));
     text-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
     animation: aboutBoxShrink cubic-bezier(0.075, 0.82, 0.165, 1) 1s forwards;
     transition: all 0.2s;
@@ -333,6 +335,15 @@ h1 {
 
 .aboutBox:hover {
     transform: scale(1.01);
+}
+
+.aboutBoxStripe {
+    position: absolute;
+    background-image: radial-gradient(circle, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0), #daba77, white);
+    width: 100%;
+    opacity: 0.5;
+    background-position: center;
+    background-repeat: no-repeat;
 }
 
 @keyframes aboutBoxShrink {
