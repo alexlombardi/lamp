@@ -775,13 +775,13 @@ function App() {
                                 <Route path='*' element={<Home />} />
                             </Routes>
                         </AnimatePresence>
-                        <EffectComposer>
+                        {/*<EffectComposer>
                             <DepthOfField
                                 focusDistance={0} // where to focus
                                 focalLength={0.02} // focal length
                                 bokehScale={2} // bokeh size
                             />    
-                        </EffectComposer>
+                        </EffectComposer>*/}
                     </Canvas>
                 </Suspense>
                 <Loader />
